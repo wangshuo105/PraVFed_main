@@ -1,0 +1,517 @@
+import copy
+
+import torch
+import torchvision
+import numpy as np
+from torchvision import datasets, transforms
+from options import args_parser
+from torch.utils.data import ConcatDataset, DataLoader, TensorDataset
+import matplotlib.pyplot as plt
+from uuid import uuid4
+from torch.utils.data import Dataset, DataLoader
+import random
+
+def plt_image(train_dataset, A_train_data, B_train_data):
+    dataset_trainloader = DataLoader(train_dataset.data, batch_size=1, shuffle=False, num_workers=2)
+    A_trainloader = DataLoader(A_train_data.data, batch_size=1, shuffle=False, num_workers=2)
+    B_trainloader = DataLoader(B_train_data.data, batch_size=1, shuffle=False, num_workers=2)
+    print(type(A_trainloader))
+    dataset_dataiter = next(iter(dataset_trainloader))
+    A_dataiter = next(iter(A_trainloader))
+    B_dataiter = next(iter(B_trainloader))
+    img_all = dataset_dataiter
+    print(img_all.shape)
+    img_a = A_dataiter
+    img_b = B_dataiter
+    # print(img_a.shape)
+    print(img_b)
+    plt.figure()
+    for i, data in enumerate(dataset_dataiter):
+        print(data.shape)
+        plt.subplot(i + 1, 3, 1)
+        plt.imshow(torch.permute(data, (1, 0)))
+        plt.subplot(i + 1, 3, 2)
+        plt.imshow(torch.permute(A_dataiter[i], (1, 0)))
+        plt.subplot(i + 1, 3, 3)
+        plt.imshow(torch.permute(B_dataiter[i], (1, 0)))
+    plt.show()
+
+
+def plt_image_all(N, train_dataset, split_data):
+    dataset_trainloader = DataLoader(train_dataset.data, batch_size=1, shuffle=False, num_workers=1)
+    split_data_loader = []
+    split_data_iter = []
+    for train_data in split_data:
+        inter = DataLoader(train_data.data, batch_size=1, shuffle=False, num_workers=1)
+        split_data_loader.append(inter)
+    dataset_dataiter = next(iter(dataset_trainloader))
+    for train_data in split_data_loader:
+        split_data_iter.append(next(iter(train_data)))
+        print(next(iter(train_data)).shape)
+    # B_trainloader = DataLoader(B_train_data.data, batch_size=1, shuffle=False, num_workers=2)
+    # print(type(A_trainloader))
+    # dataset_dataiter = next(iter(dataset_trainloader))
+    # A_dataiter = next(iter(A_trainloader))
+    # B_dataiter = next(iter(B_trainloader))
+    img_all = dataset_dataiter
+    print(img_all.shape)
+    # print(img_a.shape)
+    plt.figure()
+    for i, data in enumerate(dataset_dataiter):
+        print(data.shape)
+        plt.subplot(i + 1, N + 1, 1)
+        plt.imshow(torch.permute(dataset_dataiter, (1, 2, 0)))
+        for j in range(len(split_data_iter)):
+            plt.subplot(i + 1, N + 1, j + 2)
+            plt.imshow(torch.permute(split_data_iter[j], (1, 2, 0)))
+        # plt.subplot(i+1, 3, 3)
+        # plt.imshow(torch.permute(B_dataiter[i], (1,0)))
+    plt.show()
+
+
+def split_vertical_data_all_cifar10_1(args, train_dataset):
+    split_train_data = []
+    # split_test_data = []
+    # train_dataset, test_dataset = self.load_dataset(args)
+    train_dataset_all = copy.deepcopy(train_dataset)
+    # test_dataset_all = copy.deepcopy(test_dataset)
+    N = args.num_user
+    data_dim = train_dataset.data.shape[3]
+    split_data_dim = int(data_dim / N)
+    split_train = torch.split(train_dataset.data, split_data_dim, dim=3)
+    # split_test = torch.split(test_dataset.data, split_data_dim, dim=3)
+    # final_split_train = []
+    if (len(split_train) > N):
+        for i in range(N - 1):
+            inter = copy.deepcopy(train_dataset_all)
+            inter.data = copy.deepcopy(split_train[i])
+            split_train_data.append(inter)
+            # inter_test = copy.deepcopy(test_dataset_all)
+            # inter_test.data = copy.deepcopy(split_test[i])
+            # split_test_data.append(inter_test)
+        inter = torch.cat([split_train[-2], split_train[-1]], dim=2)
+        inter_train = copy.deepcopy(train_dataset_all)
+        inter_train.data = copy.deepcopy(inter)
+        split_train_data.append(inter_train)
+
+        # inter = torch.cat([split_test[-2], split_test[-1]], dim=2)
+        # inter_test = copy.deepcopy(test_dataset_all)
+        # inter_test.data = copy.deepcopy(inter)
+        # split_test_data.append(inter_test)
+    else:
+        for i in range(N):
+            inter = copy.deepcopy(train_dataset_all)
+            inter.data = copy.deepcopy(split_train[i])
+            split_train_data.append(inter)
+            # inter_test = copy.deepcopy(test_dataset_all)
+            # inter_test.data = copy.deepcopy(split_test[i])
+            # split_test_data.append(inter_test)
+    return train_dataset, split_train_data
+
+
+class Data(object):
+    def __init__(self, args):
+        self.data_loader = {}
+        self.num_steps = 0
+        # nthreads denoted the read data
+        self.nThreads = args.nThreads
+        # self.transform = transform
+        self.batch_size = args.batch_size
+        # split data into two parts
+        self.shuffle = args.shuffle
+        # self.split_vertical_data(args)
+
+    def load_dataset(self, args):
+        print(args.datasets)
+        global train_dataset, test_dataset
+        if args.datasets == "mnist":
+            trans_mnist_train = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize((0.1307,), (0.3081,))
+            ])
+            train_dataset = torchvision.datasets.MNIST("./data/mnist", train=True,
+                                                       transform=trans_mnist_train,
+                                                       download=True)
+            test_dataset = torchvision.datasets.MNIST("./data/mnist", train=False,
+                                                      transform=trans_mnist_train,
+                                                      download=True)
+        elif args.datasets == "fmnist":
+            trans_Fmnist_train = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize((0.1307,), (0.3081,))
+            ])
+            train_dataset = torchvision.datasets.FashionMNIST("data/Fmnist", train=True,
+                                                              transform=trans_Fmnist_train,
+                                                              download=True)
+            test_dataset = torchvision.datasets.FashionMNIST("data/Fmnist", train=False,
+                                                             transform=trans_Fmnist_train,
+                                                             download=True)
+        elif args.datasets == "cifar10":
+            # trans_cifar10_train = transforms.Compose([transforms.RandomCrop(32, padding=4),
+            #                                           transforms.RandomHorizontalFlip(),
+            #                                           transforms.ToTensor(),
+            #                                           transforms.Normalize(mean=[0.485, 0.456, 0.406],
+            #                                                                std=[0.229, 0.224, 0.225])])
+            trans_cifar10_train  = transforms.Compose([transforms.RandomHorizontalFlip(),
+                                                                  transforms.RandomCrop(32, padding=4),
+                                                                  transforms.ToTensor(),
+                                                                  transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010])
+                                                                    ])
+            trans_cifar10_val = transforms.Compose([transforms.ToTensor(),
+                                                    transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010])])
+            train_dataset = torchvision.datasets.CIFAR10("data/cifar10", train=True,
+                                                         transform=trans_cifar10_train,
+                                                         download=True)
+            test_dataset = torchvision.datasets.CIFAR10("data/cifar10", train=False,
+                                                        transform=trans_cifar10_val,
+                                                        download=True)
+        elif args.datasets == "cifar100":
+            trans_cifar100_train = transforms.Compose([transforms.RandomCrop(32, padding=4),
+                                                      transforms.RandomHorizontalFlip(),
+                                                      transforms.ToTensor(),
+                                                      transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                                           std=[0.229, 0.224, 0.225])])
+            trans_cifar100_val = transforms.Compose([transforms.ToTensor(),
+                                                    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                                         std=[0.229, 0.224, 0.225])])
+            train_dataset = torchvision.datasets.CIFAR100("data/cifar100", train=True,
+                                                         transform=trans_cifar100_train,
+                                                         download=True)
+            test_dataset = torchvision.datasets.CIFAR100("data/cifar100", train=False,
+                                                        transform=trans_cifar100_val,
+                                                        download=True)
+        elif args.datasets == "cinic":
+            trans_cinic_train = transforms.Compose([
+                # transforms.RandomCrop(32, padding=4),
+                                                    # transforms.RandomHorizontalFlip(),
+                                                    transforms.ToTensor(),
+                                                    transforms.Normalize(mean=[0.47889522, 0.47227842, 0.43047404], 
+                                                                        std=[0.24205776, 0.23828046, 0.25874835])  # CINIC数据集的标准化
+                                                    ])
+            trans_cinic_val = transforms.Compose([transforms.ToTensor(),
+                                                  transforms.Normalize(mean=[0.47889522, 0.47227842, 0.43047404], 
+                                                                    std=[0.24205776, 0.23828046, 0.25874835])  # CINIC数据集的标准化
+                                                ])
+            train_dataset_train = datasets.ImageFolder(root='data/cinic-10/train', transform=trans_cinic_train)
+            samples = train_dataset_train.imgs
+            random.shuffle(samples)
+            train_dataset_train.imgs = samples
+            train_dataset_valid = datasets.ImageFolder(root='data/cinic-10/valid', transform=trans_cinic_train)
+            samples = train_dataset_valid.imgs
+            random.shuffle(samples)
+            train_dataset_valid.imgs = samples
+            train_dataset = ConcatDataset([train_dataset_train, train_dataset_valid])
+            test_dataset = datasets.ImageFolder(root='data/cinic-10/test', transform=trans_cinic_val)
+            samples = test_dataset.imgs
+            random.shuffle(samples)
+            test_dataset.imgs = samples
+        else:
+            print("Please input dataset type")
+        # shuffle dataset manually
+        if (self.shuffle):
+            if ((args.datasets == "mnist") or (args.datasets == "Fmnist")):
+                size = len(train_dataset.data)
+                idx = np.random.choice(size, size, replace=False)
+                # print(idx)
+                train_dataset.data = train_dataset.data[idx]
+                # print(train_dataset.targets)
+                train_dataset.targets = train_dataset.targets[idx]
+            # elif ((args.datasets == "cifar10") or (args.datasets == "cifar100")):
+            #     idx = np.random.permutation(len(train_dataset))  # Generate shuffled indices
+            #     # Reorder the dataset's data and targets using the shuffled indices
+            #     train_dataset.data = train_dataset.data[idx]
+            #     train_dataset.targets = np.array(train_dataset.targets)[idx]
+                
+        # print("下载后的数据集大小")
+        # print(train_dataset.data.shape)
+        return train_dataset, test_dataset
+    
+    
+    def split_data(self,dataset, n_workers=4):
+        # if worker_list is None:
+        worker_list = list(range(0, n_workers))
+
+        # counter to create the index of different data samples
+        idx = 0
+
+        # dictionary to accomodate the split data
+        dic_single_datasets = {}
+        for worker in worker_list:
+            """
+            Each value is a list of three elements, to accomodate, in order: 
+            - data examples (as tensors)
+            - label
+            - index 
+            """
+            dic_single_datasets[worker] = []
+
+        """
+        Loop through the dataset to split the data and labels vertically across workers. 
+        Splitting method from @abbas5253: https://github.com/abbas5253/SplitNN-for-Vertically-Partitioned-Data/blob/master/distribute_data.py
+        """
+        label_list = []
+        index_list = []
+        index_list_UUID = []
+        for tensor, label in dataset:
+            height = tensor.shape[-1] // len(worker_list)
+            i = 0
+            uuid_idx = uuid4()
+            for worker in worker_list[:-1]:
+                dic_single_datasets[worker].append(torch.unsqueeze(tensor[:, :, height * i: height * (i + 1)], 0))
+                i += 1
+
+            # add the value of the last worker / split
+            
+            dic_single_datasets[worker_list[-1]].append(torch.unsqueeze(tensor[:, :, height * (i):], 0))
+            label_list.append(torch.Tensor([label]))
+            index_list_UUID.append(uuid_idx)
+            index_list.append(torch.Tensor([idx]))
+
+            idx += 1
+        
+        
+        for worker in worker_list:
+            l = len(dic_single_datasets[worker])
+            data_tempt = torch.cat(dic_single_datasets[worker][:l])
+            dic_single_datasets[worker] = data_tempt
+        l = len(label_list)
+        label = torch.cat(label_list[:l])
+        # print(label.shape)
+        
+        return dic_single_datasets, label, index_list, index_list_UUID
+    
+    def split_data_1(self, dataset, n_workers):
+        worker_list = list(range(0, n_workers))
+
+        # 初始化存储 worker 数据和标签的字典
+        dic_single_datasets = {}
+        for worker in worker_list:
+            dic_single_datasets[worker] = []
+
+        # 用于存储标签
+        label_list = []
+        idx = 0
+        for tensor, label in dataset:
+            height = tensor.shape[-1] // len(worker_list)
+            i = 0
+            for worker in worker_list[:-1]:
+                # 将图像数据划分并加上批次维度，同时标签保持一致
+                dic_single_datasets[worker].append((torch.unsqueeze(tensor[:, :, height * i: height * (i + 1)], 0), label))
+                i += 1
+
+            # 最后一个 worker
+            dic_single_datasets[worker_list[-1]].append((torch.unsqueeze(tensor[:, :, height * i:], 0), label))
+
+            label_list.append(label)
+            idx += 1
+
+        # 合并每个 worker 的数据和标签
+        for worker in worker_list:
+            # 合并数据
+            data_tempt = torch.cat([data[0] for data in dic_single_datasets[worker]])  # 合并图像数据
+            labels_tempt = [data[1] for data in dic_single_datasets[worker]]  # 提取标签
+            dic_single_datasets[worker] = (data_tempt, torch.tensor(labels_tempt))  # 存储合并后的数据和标签
+        for worker in dic_single_datasets:
+            data, labels = dic_single_datasets[worker]
+            print(f"Worker {worker}: Data shape = {data.shape}, Labels shape = {labels.shape}")
+        return dic_single_datasets
+    
+    
+    
+    
+    def split_vertical_data(self, args):
+        # split dataset into two A_dataset and B_dataset
+        train_dataset, test_dataset = self.load_dataset(args)
+        train_dataset_all = copy.deepcopy(train_dataset)
+        A_train_dataset = copy.deepcopy(train_dataset)
+        B_train_dataset = copy.deepcopy(train_dataset)
+        A_test_dataset = copy.deepcopy(test_dataset)
+        B_test_dataset = copy.deepcopy(test_dataset)
+        train_data_dim = train_dataset.data.shape[2]
+        # print(train_data_dim)
+        split_dim = int(train_data_dim / 2)
+        # print(split_dim)
+        # print(train_dataset.data.shape)
+        A_train_data, B_train_data = torch.split(train_dataset.data, split_dim, dim=2)
+        A_test_data, B_test_data = torch.split(test_dataset.data, split_dim, dim=2)
+        A_train_dataset.data = copy.deepcopy(A_train_data)
+        A_test_dataset.data = copy.deepcopy(A_test_data)
+        B_train_dataset.data = copy.deepcopy(B_train_data)
+        B_test_dataset.data = copy.deepcopy(B_test_data)
+        return train_dataset_all, A_train_dataset, A_test_dataset, B_test_dataset, B_train_dataset
+
+    def split_vertical_data_all(self, args):
+        split_train_data = []
+        split_test_data = []
+        train_dataset, test_dataset = self.load_dataset(args)
+        train_dataset_all = copy.deepcopy(train_dataset)
+        test_dataset_all = copy.deepcopy(test_dataset)
+        N = args.num_user
+        data_dim = train_dataset.data.shape[2]
+        split_data_dim = int(data_dim / N)
+        split_train = torch.split(train_dataset.data, split_data_dim, dim=2)
+        split_test = torch.split(test_dataset.data, split_data_dim, dim=2)
+        # final_split_train = []
+        if (len(split_train) > N):
+            for i in range(N - 1):
+                inter = copy.deepcopy(train_dataset_all)
+                inter.data = copy.deepcopy(split_train[i])
+                split_train_data.append(inter)
+                inter_test = copy.deepcopy(test_dataset_all)
+                inter_test.data = copy.deepcopy(split_test[i])
+                split_test_data.append(inter_test)
+            inter = torch.cat([split_train[-2], split_train[-1]], dim=2)
+            inter_train = copy.deepcopy(train_dataset_all)
+            inter_train.data = copy.deepcopy(inter)
+            split_train_data.append(inter_train)
+
+            inter = torch.cat([split_test[-2], split_test[-1]], dim=2)
+            inter_test = copy.deepcopy(test_dataset_all)
+            inter_test.data = copy.deepcopy(inter)
+            split_test_data.append(inter_test)
+        else:
+            for i in range(N):
+                inter = copy.deepcopy(train_dataset_all)
+                inter.data = copy.deepcopy(split_train[i])
+                split_train_data.append(inter)
+                inter_test = copy.deepcopy(test_dataset_all)
+                inter_test.data = copy.deepcopy(split_test[i])
+                split_test_data.append(inter_test)
+        return train_dataset, test_dataset, split_train_data, split_test_data
+
+    def split_vertical_data_all_cifar10(self, args):
+        train_dataset, test_dataset = self.load_dataset(args)
+        train_dataset_all = copy.deepcopy(train_dataset)
+        test_dataset_all = copy.deepcopy(test_dataset)
+        N = args.num_user
+        worker_list = list(range(0, N))
+        # counter to create the index of different data samples
+        # dictionary to accomodate the split data
+        list_train_datasets = []
+        list_test_datasets = []
+        for j in range(len(worker_list)):
+            """
+            Each value is a list of three elements, to accomodate, in order: 
+            - data examples (as tensors)
+            - label
+            - index 
+            """
+            list_train_datasets.append([])
+            list_test_datasets.append([])
+
+        for tensor, label in train_dataset_all:
+            height = tensor.shape[-1] // len(worker_list)
+            i = 0
+            for worker in worker_list[:-1]:
+                list_train_datasets[worker].append(tensor[:, :, height * i: height * (i + 1)])
+                i += 1
+
+            # add the value of the last worker / split
+            list_train_datasets[worker_list[-1]].append(tensor[:, :, height * (i):])
+
+        for test, label in test_dataset_all:
+            height = test.shape[-1] // len(worker_list)
+            i = 0
+            for worker in worker_list[:-1]:
+                list_test_datasets[worker].append(test[:, :, height * i: height * (i + 1)])
+                i += 1
+
+            # add the value of the last worker / split
+            list_test_datasets[worker_list[-1]].append(tensor[:, :, height * (i):])
+
+        # 返回的划分数据集是个列表，list_train_datasets[0]表示第1个参与方的数据，其类型仍是一个列表
+        # list_train_datasets[0][0]表示第一个参与方的第一条数据，是一个张量
+        return train_dataset, test_dataset, list_train_datasets, list_test_datasets
+    
+    def add_labels_to_subsets(self, test_dataset_split, test_label):
+    # 创建一个新的列表，用于保存包含标签的每个子集
+        test_dataset_split_with_labels = []
+        
+        # 对每个子集，添加对应的标签
+        for i, subset in enumerate(test_dataset_split):
+            # 获取每个子集的样本索引范围
+            subset_indices = subset.indices  # 假设每个子集有一个属性 'indices'，存储样本索引
+            
+            # 获取该子集的标签
+            subset_labels = test_label[subset_indices]
+            
+            # 将标签与数据子集组合
+            subset_with_labels = TensorDataset(subset.data, subset_labels)
+            
+            # 将新子集加入结果列表
+            test_dataset_split_with_labels.append(subset_with_labels)
+        
+        return test_dataset_split_with_labels
+
+# def split_vertical_data_all_cifar10(self):
+class WorkerDataset(Dataset):
+    def __init__(self, data, labels):
+        self.data = data
+        self.labels = labels
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.data[idx], self.labels[idx]
+
+def split_data_2(dataset, n_workers=4):
+    worker_list = list(range(0, n_workers))
+
+    # 初始化存储 worker 数据和标签的字典
+    dic_single_datasets = {}
+    for worker in worker_list:
+        dic_single_datasets[worker] = []
+
+    # 用于存储标签
+    label_list = []
+    idx = 0
+    for tensor, label in dataset:
+        height = tensor.shape[-1] // len(worker_list)
+        i = 0
+        for worker in worker_list[:-1]:
+            # 划分图像数据并保持标签一致
+            dic_single_datasets[worker].append((torch.unsqueeze(tensor[:, :, height * i: height * (i + 1)], 0), label))
+            i += 1
+
+        # 最后一个 worker
+        dic_single_datasets[worker_list[-1]].append((torch.unsqueeze(tensor[:, :, height * i:], 0), label))
+
+        label_list.append(label)
+        idx += 1
+
+    # 创建每个 worker 对应的 Dataset
+    for worker in worker_list:
+        # 合并数据
+        data_tempt = torch.cat([data[0] for data in dic_single_datasets[worker]])  # 合并图像数据
+        labels_tempt = torch.tensor([data[1] for data in dic_single_datasets[worker]])  # 合并标签
+        dic_single_datasets[worker] = WorkerDataset(data_tempt, labels_tempt)  # 使用自定义的 Dataset
+
+    return dic_single_datasets
+
+if __name__ == "__main__":
+    args = args_parser()
+    data = Data(args)
+    train_dataset, test_dataset, list_train_datasets, list_test_datasets = data.split_vertical_data_all_cifar10(args)
+    load_data = torch.cat(list_train_datasets[0])
+    print(load_data.shape)
+    train_data = DataLoader(load_data, batch_size=128, drop_last=True)
+    print(train_data.data.shape)
+
+    N = args.num_user
+    split_data = []
+    list1 = [1, 2, 3, 4, 5]
+    list2 = [6, 7, 8, 9, 10]
+
+    # 将列表转换为张量
+    tensor1 = torch.tensor(list1)
+    tensor2 = torch.tensor(list2)
+
+    # 创建TensorDataset
+    dataset = TensorDataset(tensor1, tensor2)
+
+    # 打印数据集的长度
+    print("Dataset length:", len(dataset))
+
+    print(dataset[0][0].shape)
+   

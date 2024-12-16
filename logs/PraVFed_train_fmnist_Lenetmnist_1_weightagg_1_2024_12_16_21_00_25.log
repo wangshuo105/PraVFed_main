@@ -1,0 +1,50 @@
+2024-12-16 21:00:25,179 - INFO - cuda:0
+2024-12-16 21:00:25,179 - INFO - 命令行参数:
+2024-12-16 21:00:25,179 - INFO - rounds: 1
+2024-12-16 21:00:25,179 - INFO - local_ep: 1
+2024-12-16 21:00:25,180 - INFO - num_user: 4
+2024-12-16 21:00:25,180 - INFO - frac: 0.04
+2024-12-16 21:00:25,180 - INFO - local_bs: 4
+2024-12-16 21:00:25,180 - INFO - lr: 0.01
+2024-12-16 21:00:25,180 - INFO - momentum: 0.5
+2024-12-16 21:00:25,180 - INFO - central: single
+2024-12-16 21:00:25,180 - INFO - model: Lenetmnist
+2024-12-16 21:00:25,180 - INFO - model_type: hoto
+2024-12-16 21:00:25,180 - INFO - num_channels: 1
+2024-12-16 21:00:25,180 - INFO - out_dim: 2
+2024-12-16 21:00:25,180 - INFO - max_pool: True
+2024-12-16 21:00:25,180 - INFO - epsilon: 0.5
+2024-12-16 21:00:25,180 - INFO - aggre: weightagg
+2024-12-16 21:00:25,180 - INFO - datasets: fmnist
+2024-12-16 21:00:25,180 - INFO - batch_size: 128
+2024-12-16 21:00:25,180 - INFO - shuffle: True
+2024-12-16 21:00:25,180 - INFO - nThreads: 10
+2024-12-16 21:00:25,180 - INFO - data_dir: ../data/
+2024-12-16 21:00:25,180 - INFO - num_classes: 10
+2024-12-16 21:00:25,180 - INFO - optimizer: SGD
+2024-12-16 21:00:25,180 - INFO - seed: 1234
+2024-12-16 21:00:25,180 - INFO - test_ep: 10
+2024-12-16 21:00:25,180 - INFO - agg: False
+2024-12-16 21:00:25,180 - INFO - optim: False
+2024-12-16 21:00:31,843 - INFO - data i, 0
+2024-12-16 21:00:31,844 - INFO - data i, 1
+2024-12-16 21:00:31,844 - INFO - data i, 2
+2024-12-16 21:00:31,844 - INFO - model_name: Lenetmnist
+2024-12-16 21:00:31,846 - INFO - passive_model_name: Lenetmnist
+2024-12-16 21:00:32,007 - INFO - passive device: cuda:0
+2024-12-16 21:00:40,013 - INFO - [Passive_Training 0/1], loss: 2.129, accuracy: 25.473
+2024-12-16 21:00:41,079 - INFO - [Passive_Test: 0], loss: 2.054, accuracy: 28.190
+2024-12-16 21:00:41,088 - INFO - Finished Training and Testing
+2024-12-16 21:00:41,089 - INFO - model_name: CNNMnist
+2024-12-16 21:00:41,089 - INFO - passive_model_name: CNNMnist
+2024-12-16 21:00:41,090 - INFO - passive device: cuda:0
+2024-12-16 21:00:48,867 - INFO - [Passive_Training 0/1], loss: 2.206, accuracy: 23.032
+2024-12-16 21:00:49,920 - INFO - [Passive_Test: 0], loss: 2.099, accuracy: 26.930
+2024-12-16 21:00:49,927 - INFO - Finished Training and Testing
+2024-12-16 21:00:49,927 - INFO - model_name: MLP
+2024-12-16 21:00:49,927 - INFO - passive_model_name: MLP
+2024-12-16 21:00:49,927 - INFO - passive device: cuda:0
+2024-12-16 21:00:57,055 - INFO - [Passive_Training 0/1], loss: 2.139, accuracy: 25.402
+2024-12-16 21:00:58,095 - INFO - [Passive_Test: 0], loss: 2.053, accuracy: 27.520
+2024-12-16 21:00:58,102 - INFO - Finished Training and Testing
+2024-12-16 21:00:58,103 - INFO - active_model_name: Lenetmnist

@@ -1,0 +1,28 @@
+2024-12-16 20:59:57,276 - INFO - cuda:0
+2024-12-16 20:59:57,276 - INFO - 命令行参数:
+2024-12-16 20:59:57,276 - INFO - rounds: 1
+2024-12-16 20:59:57,276 - INFO - local_ep: 1
+2024-12-16 20:59:57,276 - INFO - num_user: 4
+2024-12-16 20:59:57,276 - INFO - frac: 0.04
+2024-12-16 20:59:57,276 - INFO - local_bs: 4
+2024-12-16 20:59:57,276 - INFO - lr: 0.01
+2024-12-16 20:59:57,276 - INFO - momentum: 0.5
+2024-12-16 20:59:57,276 - INFO - central: single
+2024-12-16 20:59:57,276 - INFO - model: Lenetmnist
+2024-12-16 20:59:57,276 - INFO - model_type: hoto
+2024-12-16 20:59:57,276 - INFO - num_channels: 1
+2024-12-16 20:59:57,276 - INFO - out_dim: 2
+2024-12-16 20:59:57,276 - INFO - max_pool: True
+2024-12-16 20:59:57,276 - INFO - epsilon: 0.5
+2024-12-16 20:59:57,276 - INFO - aggre: weightagg
+2024-12-16 20:59:57,276 - INFO - datasets: Fmnist
+2024-12-16 20:59:57,276 - INFO - batch_size: 128
+2024-12-16 20:59:57,276 - INFO - shuffle: True
+2024-12-16 20:59:57,276 - INFO - nThreads: 10
+2024-12-16 20:59:57,276 - INFO - data_dir: ../data/
+2024-12-16 20:59:57,276 - INFO - num_classes: 10
+2024-12-16 20:59:57,276 - INFO - optimizer: SGD
+2024-12-16 20:59:57,276 - INFO - seed: 1234
+2024-12-16 20:59:57,276 - INFO - test_ep: 10
+2024-12-16 20:59:57,276 - INFO - agg: False
+2024-12-16 20:59:57,276 - INFO - optim: False

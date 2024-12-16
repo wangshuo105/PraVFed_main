@@ -1,0 +1,13 @@
+# General
+data/cifar10/
+data/cifar100/
+data/Fmnist/
+data/mnist/
+data/adult/
+data/breast_cancer/
+data/creditcard/
+data/criteo/
+data/diabetes/
+data/nuswide/
+data/cinic-10/
+save/*

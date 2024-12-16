@@ -1,0 +1,28 @@
+2024-12-16 20:59:23,063 - INFO - cuda:0
+2024-12-16 20:59:23,063 - INFO - 命令行参数:
+2024-12-16 20:59:23,063 - INFO - rounds: 1
+2024-12-16 20:59:23,064 - INFO - local_ep: 1
+2024-12-16 20:59:23,064 - INFO - num_user: 4
+2024-12-16 20:59:23,064 - INFO - frac: 0.04
+2024-12-16 20:59:23,064 - INFO - local_bs: 4
+2024-12-16 20:59:23,064 - INFO - lr: 0.01
+2024-12-16 20:59:23,064 - INFO - momentum: 0.5
+2024-12-16 20:59:23,064 - INFO - central: single
+2024-12-16 20:59:23,064 - INFO - model: resnet18
+2024-12-16 20:59:23,064 - INFO - model_type: hoto
+2024-12-16 20:59:23,064 - INFO - num_channels: 1
+2024-12-16 20:59:23,064 - INFO - out_dim: 2
+2024-12-16 20:59:23,064 - INFO - max_pool: True
+2024-12-16 20:59:23,064 - INFO - epsilon: 0.5
+2024-12-16 20:59:23,064 - INFO - aggre: weightagg
+2024-12-16 20:59:23,064 - INFO - datasets: cinic
+2024-12-16 20:59:23,064 - INFO - batch_size: 128
+2024-12-16 20:59:23,064 - INFO - shuffle: True
+2024-12-16 20:59:23,064 - INFO - nThreads: 10
+2024-12-16 20:59:23,064 - INFO - data_dir: ../data/
+2024-12-16 20:59:23,064 - INFO - num_classes: 10
+2024-12-16 20:59:23,064 - INFO - optimizer: SGD
+2024-12-16 20:59:23,064 - INFO - seed: 1234
+2024-12-16 20:59:23,064 - INFO - test_ep: 10
+2024-12-16 20:59:23,064 - INFO - agg: False
+2024-12-16 20:59:23,064 - INFO - optim: False
