@@ -11,3 +11,4 @@ data/diabetes/
 data/nuswide/
 data/cinic-10/
 save/*
+logs/*

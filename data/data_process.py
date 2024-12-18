@@ -119,8 +119,7 @@ class Data(object):
                 train_dataset.data = train_dataset.data[idx]
                 # print(train_dataset.targets)
                 train_dataset.targets = train_dataset.targets[idx]
-        # print("下载后的数据集大小")
-        # print(train_dataset.data.shape)
+
         return train_dataset, test_dataset
     
     
@@ -180,34 +179,28 @@ class Data(object):
     def split_data_1(self, dataset, n_workers):
         worker_list = list(range(0, n_workers))
 
-        # 初始化存储 worker 数据和标签的字典
         dic_single_datasets = {}
         for worker in worker_list:
             dic_single_datasets[worker] = []
 
-        # 用于存储标签
         label_list = []
         idx = 0
         for tensor, label in dataset:
             height = tensor.shape[-1] // len(worker_list)
             i = 0
             for worker in worker_list[:-1]:
-                # 将图像数据划分并加上批次维度，同时标签保持一致
+
                 dic_single_datasets[worker].append((torch.unsqueeze(tensor[:, :, height * i: height * (i + 1)], 0), label))
                 i += 1
-
-            # 最后一个 worker
             dic_single_datasets[worker_list[-1]].append((torch.unsqueeze(tensor[:, :, height * i:], 0), label))
 
             label_list.append(label)
             idx += 1
 
-        # 合并每个 worker 的数据和标签
         for worker in worker_list:
-            # 合并数据
-            data_tempt = torch.cat([data[0] for data in dic_single_datasets[worker]])  # 合并图像数据
-            labels_tempt = [data[1] for data in dic_single_datasets[worker]]  # 提取标签
-            dic_single_datasets[worker] = (data_tempt, torch.tensor(labels_tempt))  # 存储合并后的数据和标签
+            data_tempt = torch.cat([data[0] for data in dic_single_datasets[worker]])  
+            labels_tempt = [data[1] for data in dic_single_datasets[worker]]  
+            dic_single_datasets[worker] = (data_tempt, torch.tensor(labels_tempt))  
         for worker in dic_single_datasets:
             data, labels = dic_single_datasets[worker]
             print(f"Worker {worker}: Data shape = {data.shape}, Labels shape = {labels.shape}")
@@ -282,8 +275,6 @@ class Data(object):
         test_dataset_all = copy.deepcopy(test_dataset)
         N = args.num_user
         worker_list = list(range(0, N))
-        # counter to create the index of different data samples
-        # dictionary to accomodate the split data
         list_train_datasets = []
         list_test_datasets = []
         for j in range(len(worker_list)):
@@ -316,29 +307,8 @@ class Data(object):
             # add the value of the last worker / split
             list_test_datasets[worker_list[-1]].append(tensor[:, :, height * (i):])
 
-        # 返回的划分数据集是个列表，list_train_datasets[0]表示第1个参与方的数据，其类型仍是一个列表
-        # list_train_datasets[0][0]表示第一个参与方的第一条数据，是一个张量
         return train_dataset, test_dataset, list_train_datasets, list_test_datasets
     
-    def add_labels_to_subsets(self, test_dataset_split, test_label):
-    # 创建一个新的列表，用于保存包含标签的每个子集
-        test_dataset_split_with_labels = []
-        
-        # 对每个子集，添加对应的标签
-        for i, subset in enumerate(test_dataset_split):
-            # 获取每个子集的样本索引范围
-            subset_indices = subset.indices  # 假设每个子集有一个属性 'indices'，存储样本索引
-            
-            # 获取该子集的标签
-            subset_labels = test_label[subset_indices]
-            
-            # 将标签与数据子集组合
-            subset_with_labels = TensorDataset(subset.data, subset_labels)
-            
-            # 将新子集加入结果列表
-            test_dataset_split_with_labels.append(subset_with_labels)
-        
-        return test_dataset_split_with_labels
 
 if __name__ == "__main__":
     args = args_parser()

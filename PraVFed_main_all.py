@@ -39,21 +39,20 @@ def setup_logger(args):
 
     logger.info(args)
     
-    # 创建控制台处理器
+
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
 
-    # 创建文件处理器，文件路径包括时间戳
     log_filename = os.path.join(log_dir, f'PraVFed_train_{args.datasets}_{args.model}_{args.rounds}_{args.aggre}_{args.local_ep}_{time.strftime("%Y_%m_%d_%H_%M_%S")}.log')
     file_handler = logging.FileHandler(log_filename)
     file_handler.setLevel(logging.INFO)
 
-    # 日志格式
+
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     console_handler.setFormatter(formatter)
     file_handler.setFormatter(formatter)
 
-    # 将处理器添加到logger
+
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
 
@@ -149,8 +148,7 @@ def PraVFed_train(args,logger):
     for i in range(len(P)):
         passive_party = P[i]
         model_name = model_name_all[i % len(model_name_all)]  
-        # model_name = choice(model_name_all)  
-        # print("model_name",model_name)
+
         logger.info(f"model_name: {model_name}")
         if args.datasets in tabular_datasets:
             input_dim = passive_party.train_data.tensors[0].shape[1]
@@ -163,7 +161,7 @@ def PraVFed_train(args,logger):
         passive_party.loss_function = passive_party.loss_funtion_load_B()
         passive_party.pre_train(args, i + 1)
     
-    # 加载主动方模型
+
     if args.datasets in tabular_datasets:
         input_dim = active_party.train_data.tensors[0].shape[1]
         print("input_dim",input_dim)
@@ -176,14 +174,14 @@ def PraVFed_train(args,logger):
     active_party.loss_function = active_party.loss_funtion_load_A()
     # active_party.pre_train(args)
     
-    # 创建文件存储每轮训练和测试的结果
+
     folder_name = f'save/PraVFed_Main/{args.datasets}/{args.model_type}'
     create_folder(folder_name)
     
-    # Excel 文件路径
+
     excel_file_path = f'./save/PraVFed_Main/{args.datasets}/{args.model_type}/PVFed_two_{args.datasets}_{active_party.model_name}_{args.rounds}_{args.aggre}_{args.epsilon}_{time.strftime("%Y_%m_%d_%H_%M_%S")}.xlsx'
     communications = []
-    # 使用 pandas 写入 Excel 文件
+
     with pd.ExcelWriter(excel_file_path, engine='xlsxwriter') as writer:
         
         # 训练轮次
@@ -196,12 +194,8 @@ def PraVFed_train(args,logger):
                 passive_party.data_load(args.batch_size)
             train_data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False,num_workers=4)
             epoch_communication = 0
-            # lambda1 = lambda ep: 0.7 ** ep
-            # scheduler = torch.optim.lr_scheduler.LambdaLR(active_party.optimizer, lr_lambda=lambda1)
-            # active_party.scheduler.step()
-            # 训练过程
+
             for i, (img, label) in enumerate(train_data_loader, 0):
-                # 分割数据，适应不同数据集的分割方法
                 label = label.to(device)
                 # active_party.labels = label
                 
